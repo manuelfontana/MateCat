@@ -419,7 +419,6 @@ class Segment extends React.Component {
     componentDidMount() {
         this.$section = $(this.section);
         document.addEventListener('keydown', this.handleKeyDown);
-        SegmentStore.addListener(SegmentConstants.HIGHLIGHT_EDITAREA, this.hightlightEditarea);
         SegmentStore.addListener(SegmentConstants.ADD_SEGMENT_CLASS, this.addClass);
         SegmentStore.addListener(SegmentConstants.REMOVE_SEGMENT_CLASS, this.removeClass);
         SegmentStore.addListener(SegmentConstants.SET_SEGMENT_PROPAGATION, this.setAsAutopropagated);
@@ -433,12 +432,16 @@ class Segment extends React.Component {
             });
             setTimeout(()=>{UI.setCurrentSegment()},0);
         }
+
+        this.height = this.section.clientHeight;
+        if ( !this.props.segment.opened ) {
+            this.props.updateHeight( this.props.segImmutable, this.section.clientHeight );
+        }
     }
 
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeyDown);
-        SegmentStore.removeListener(SegmentConstants.HIGHLIGHT_EDITAREA, this.hightlightEditarea);
         SegmentStore.removeListener(SegmentConstants.ADD_SEGMENT_CLASS, this.addClass);
         SegmentStore.removeListener(SegmentConstants.REMOVE_SEGMENT_CLASS, this.removeClass);
         SegmentStore.removeListener(SegmentConstants.SET_SEGMENT_PROPAGATION, this.setAsAutopropagated);
@@ -448,7 +451,15 @@ class Segment extends React.Component {
     }
 
     componentDidUpdate() {
+        if ( !this.props.segment.opened ) {
+            setTimeout(()=> {
+                if (this.section) {
+                    this.props.updateHeight( this.props.segImmutable, this.section.clientHeight );
+                    this.height = this.section.clientHeight;
+                }
+            });
 
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -459,7 +470,6 @@ class Segment extends React.Component {
             nextState.readonly !== this.state.readonly ||
             nextState.selectedTextObj !== this.state.selectedTextObj ||
             nextProps.sideOpen !== this.props.sideOpen ||
-            nextProps.height !== this.props.height ||
             nextState.showActions !== this.state.showActions
         );
     }
@@ -601,7 +611,6 @@ class Segment extends React.Component {
                         isReviewExtended={this.props.isReviewExtended}
                         reviewType={this.props.reviewType}
                         isReviewImproved={this.props.isReviewImproved}
-                        height={this.props.height}
                     />
                     <div className="timetoedit"
                          data-raw-time-to-edit={this.props.segment.time_to_edit}>
